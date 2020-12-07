@@ -10,8 +10,8 @@ import java.io.*;
 
 public class Main extends JFrame {
 
-    private static final int WIDTH = 800;
-    private static final int HEIGHT = 600;
+    private static final int WIDTH = 700;
+    private static final int HEIGHT = 500;
 
     private JFileChooser fileChooser = null;
 
@@ -30,7 +30,7 @@ public class Main extends JFrame {
 
         Toolkit kit = Toolkit.getDefaultToolkit();
 
-        setLocation((kit.getScreenSize().width - WIDTH) / 3, (kit.getScreenSize().height - HEIGHT) / 3);
+        setLocation((kit.getScreenSize().width - WIDTH) / 2, (kit.getScreenSize().height - HEIGHT) / 2);
 
         setExtendedState(MAXIMIZED_BOTH);
 

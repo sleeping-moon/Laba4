@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import javax.swing.JPanel;
+import java.awt.geom.Ellipse2D;
 
 public class GraphicsDisplay1 extends JPanel{
     // Список координат точек для построения графика
@@ -37,12 +38,11 @@ public class GraphicsDisplay1 extends JPanel{
     // Различные шрифты отображения надписей
     private Font axisFont;
     public GraphicsDisplay1() {
-        // Цвет заднего фона области отображения - белый
         setBackground(Color.white);
         // Сконструировать необходимые объекты, используемые в рисовании
         // Перо для рисования графика
         graphicsStroke = new BasicStroke(5.0f, BasicStroke.CAP_BUTT,
-                BasicStroke.JOIN_ROUND, 10.0f, new float[] {30, 10, 20, 10, 10, 10, 20, 10}, 0.0f); //24,6,12,6,6,6,12,6
+                BasicStroke.JOIN_ROUND, 10.0f, new float[] {15,5,15,5,15}, 0.0f);
         // Перо для рисования осей координат
         axisStroke = new BasicStroke(2.0f, BasicStroke.CAP_BUTT,
                 BasicStroke.JOIN_MITER, 10.0f, null, 0.0f);
@@ -60,8 +60,6 @@ public class GraphicsDisplay1 extends JPanel{
         // Запросить перерисовку компонента, т.е. неявно вызвать paintComponent();
         repaint();
     }
-    // Методы-модификаторы для изменения параметров отображения графика
-    // Изменение любого параметра приводит к перерисовке области
     public void setShowAxis(boolean showAxis) {
         this.showAxis = showAxis;
         repaint();
@@ -163,7 +161,7 @@ public class GraphicsDisplay1 extends JPanel{
         for (int i=0; i<graphicsData.length; i++) {
             // Преобразовать значения (x,y) в точку на экране point
             Point2D.Double point = xyToPoint(graphicsData[i][0],
-                    graphicsData[i][1]);
+                    graphicsData[i][1]+1);
             if (i>0) {
                 // Не первая итерация цикла - вести линию в точку point
                 graphics.lineTo(point.getX(), point.getY());
@@ -203,7 +201,7 @@ public class GraphicsDisplay1 extends JPanel{
                 canvas.setColor(Color.RED);
                 FontRenderContext extr = canvas.getFontRenderContext();
                 Rectangle2D bounds = axisFont.getStringBounds("extr", extr);
-                Point2D.Double labelPos = xyToPoint(graphicsData[i][0], graphicsData[i][1]);
+                Point2D.Double labelPos = xyToPoint(graphicsData[i][0], graphicsData[i][1]+1);
                 canvas.drawString("extr ("+ tempX.format(graphicsData[i][0]) +" , " + tempY.format(graphicsData[i][1]) + " )", (float) labelPos.getX() + 10, (float) (labelPos.getY() - bounds.getY()));
             }
             else if (markPoint(graphicsData[i][1]))
@@ -212,12 +210,12 @@ public class GraphicsDisplay1 extends JPanel{
                 canvas.setColor(Color.BLACK);
 
             GeneralPath path = new GeneralPath();
-            Point2D.Double center = xyToPoint(graphicsData[i][0], graphicsData[i][1]);
-            path.moveTo(center.x, center.y + 5);
-            path.lineTo(center.x + 5, center.y);
-            path.lineTo(center.x, center.y - 5);
-            path.lineTo(center.x - 5, center.y);
-            path.lineTo(center.x, center.y + 5);
+            Point2D.Double center = xyToPoint(graphicsData[i][0], graphicsData[i][1]+1);
+            Ellipse2D.Double circle1 = new Ellipse2D.Double(center.x,center.y-3, 6, 12);
+            Ellipse2D.Double circle2 = new Ellipse2D.Double(center.x-3,center.y, 12, 6);
+            canvas.draw(circle1);
+            canvas.draw(circle2);
+
             canvas.draw(path);
         }
     }
@@ -264,11 +262,11 @@ public class GraphicsDisplay1 extends JPanel{
         if (minY<=0.0 && maxY>=0.0) {
             // Она должна быть видна, если верхняя граница показываемой области (maxX) >= 0.0,
             // а нижняя (minY) <= 0.0
-            canvas.draw(new Line2D.Double(xyToPoint(minX, 0), xyToPoint(maxX, 0)));
+            canvas.draw(new Line2D.Double(xyToPoint(minX,1) ,xyToPoint(maxX, 1)));
             // Стрелка оси X
             GeneralPath arrow = new GeneralPath();
             // Установить начальную точку ломаной точно на правый конец оси X
-            Point2D.Double lineEnd = xyToPoint(maxX, 0);
+            Point2D.Double lineEnd = xyToPoint(maxX, 1);
             arrow.moveTo(lineEnd.getX(), lineEnd.getY());
             // Вести верхний "скат" стрелки в точку с относительными координатами (-20,-5)
             arrow.lineTo(arrow.getCurrentPoint().getX()-20, arrow.getCurrentPoint().getY()-5);
@@ -281,18 +279,11 @@ public class GraphicsDisplay1 extends JPanel{
             // Нарисовать подпись к оси X
             // Определить, сколько места понадобится для надписи "x"
             Rectangle2D bounds = axisFont.getStringBounds("x", context);
-            Point2D.Double labelPos = xyToPoint(maxX, 0);
+            Point2D.Double labelPos = xyToPoint(maxX, 1);
             // Вывести надпись в точке с вычисленными координатами
             canvas.drawString("x", (float)(labelPos.getX() - bounds.getWidth() - 10), (float)(labelPos.getY() + bounds.getY()));
         }
     }
-    /* Метод-помощник, осуществляющий преобразование координат.
-    * Оно необходимо, т.к. верхнему левому углу холста с координатами
-    * (0.0, 0.0) соответствует точка графика с координатами (minX, maxY),
-    где
-    * minX - это самое "левое" значение X, а
-    * maxY - самое "верхнее" значение Y.
-    */
     protected Point2D.Double xyToPoint(double x, double y) {
         // Вычисляем смещение X от самой левой точки (minX)
         double deltaX = x - minX;
